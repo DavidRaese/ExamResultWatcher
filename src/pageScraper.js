@@ -1,6 +1,13 @@
 const secrets = require("./secrets");
 const fs = require("fs");
 const dayjs = require("dayjs");
+const EmailSender = require("./EmailSender");
+
+const emailSender = new EmailSender(
+  secrets.emailService,
+  secrets.emailUsername,
+  secrets.emailPassword
+);
 
 const scraperObject = {
   url: "https://online.fh-joanneum.at/",
@@ -9,8 +16,8 @@ const scraperObject = {
     console.log(`Navigating to ${this.url}...`);
     await page.goto(this.url);
     await page.waitForSelector("input[name='username']", { visible: true });
-    await page.type("input[name='username']", secrets.username);
-    await page.type("input[name='password']", secrets.password);
+    await page.type("input[name='username']", secrets.fhUsername);
+    await page.type("input[name='password']", secrets.fhPassword);
     await page.click("#id_brm-pm-dtop_login_submitbutton"); // flaky
 
     // go to personal homescreen
@@ -36,8 +43,9 @@ const scraperObject = {
     } else if (secrets.numberOfScores < currentNumberOfScores) {
       updateNumberOfScores(currentNumberOfScores);
       appendToLogFile(
-        `FOUND NEW RESULT!!!. Number of results were set to ${currentNumberOfScores} in secrets.js`
+        `FOUND NEW RESULT!!!. Number of results were set to ${currentNumberOfScores}`
       );
+      emailSender.sendMail("FOUND NEW RESULT!!!");
     } else {
       appendToLogFile(`no new results`);
     }
@@ -74,5 +82,7 @@ const appendToLogFile = (string) => {
     if (err) throw err;
   });
 };
+
+const sendMail = () => {};
 
 module.exports = scraperObject;
